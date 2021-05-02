@@ -25,9 +25,9 @@
    :history   []
    :running false
    :notified false
-   :plan   {:durations {::work (* 25 1); 60)
-                        ::short-break (* 5 1);  60)
-                        ::long-break (* 15 1)} ; 60)
+   :plan   {:durations {::work (* 25 60)
+                        ::short-break (* 5 60)
+                        ::long-break (* 15 60)}
             :rounds 4}})
 
 (defn step-type [session rounds-count]
