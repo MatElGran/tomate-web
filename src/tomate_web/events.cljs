@@ -20,7 +20,8 @@
 (lib/reg-event-db
  ::notification-permission-response
  (fn-traced [db [_ notification-permission]]
-            (assoc  db :notification-permission notification-permission)))
+            (assoc db :notification-permission notification-permission 
+                      :notifications (= "granted" notification-permission))))
 
 (lib/reg-event-fx
  ::next-step
