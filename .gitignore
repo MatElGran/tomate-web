@@ -19,4 +19,4 @@
 /.lsp/
 
 # clj-kondo cache
-/.clj-kondo/
+/.clj-kondo/.cache
