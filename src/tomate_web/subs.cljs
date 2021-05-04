@@ -39,10 +39,10 @@
    (:rounds plan)))
 
 (re-frame/reg-sub
- ::work-session-duration
+ ::focus-duration
  :<- [::plan]
  (fn [plan _]
-   (get-in plan [:durations ::db/work])))
+   (get-in plan [:durations ::db/focus])))
 
 (defn left-pad [n]
   (let [abs-n (.abs js/Math n)]
@@ -93,10 +93,10 @@
 
  :<- [::elapsed-time]
  :<- [::step-type]
- :<- [::work-session-duration]
+ :<- [::focus-duration]
 
- (fn [[elapsed-time step-type, work-session-duration] _]
+ (fn [[elapsed-time step-type, focus-session-duration] _]
    (format-time
-    (if (= step-type ::db/work)
-      (- work-session-duration elapsed-time)
+    (if (= step-type ::db/focus)
+      (- focus-session-duration elapsed-time)
       elapsed-time))))

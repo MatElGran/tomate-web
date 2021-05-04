@@ -2,7 +2,7 @@
   (:require
    [cljs.spec.alpha :as s]))
 
-(s/def ::work int?)
+(s/def ::focus int?)
 (s/def ::short-break int?)
 (s/def ::long-break int?)
 (s/def ::rounds int?)
@@ -14,7 +14,7 @@
                                        ::end-time]))
 (s/def ::session (s/coll-of ::archive-item))
 (s/def ::history (s/coll-of ::session))
-(s/def ::durations (s/keys :req [::work ::long-break ::short-break]))
+(s/def ::durations (s/keys :req [::focus ::long-break ::short-break]))
 (s/def ::plan (s/keys :req-un [::durations
                                ::rounds]))
 (s/def ::schema (s/keys :req-un [::plan ::session ::history ::running ::notified ::notifications ::notification-permission]))
@@ -25,7 +25,7 @@
    :history   []
    :running false
    :notified false
-   :plan   {:durations {::work (* 25 60)
+   :plan   {:durations {::focus (* 25 60)
                         ::short-break (* 5 60)
                         ::long-break (* 15 60)}
             :rounds 4}})
@@ -37,7 +37,7 @@
     (cond
       last-step? ::long-break
       (even? round-number) ::short-break
-      :else ::work)))
+      :else ::focus)))
 
 (comment
   (let [session [1 2 3]

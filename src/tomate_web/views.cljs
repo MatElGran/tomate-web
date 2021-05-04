@@ -50,6 +50,7 @@
       ;;  (if notifications
       ;;    "Deactivate notifications"
       ;;    "Activate notifications")]
+      [:p {:class (styles/level2)} step-type]
       [timer time]
       (if running
 
@@ -58,6 +59,5 @@
          #(re-frame/dispatch [::events/next-step])]
 
         [idle-control-pane
-         #(re-frame/dispatch [::events/start-timer])])
-      [:p {:class (styles/level2)} step-type]]]))
+         #(re-frame/dispatch [::events/start-timer])])]]))
 
