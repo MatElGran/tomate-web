@@ -40,8 +40,16 @@
      [:header
       "Tomate"]
 
+
      [:div
       {:class (styles/container)}
+      ;; [:button {:class (styles/button)
+      ;;           :on-click (if notifications
+      ;;                       #(re-frame/dispatch [::events/deactivate-notifications])
+      ;;                       #(re-frame/dispatch [::events/activate-notifications]))}
+      ;;  (if notifications
+      ;;    "Deactivate notifications"
+      ;;    "Activate notifications")]
       [timer time]
       (if running
 
@@ -51,12 +59,5 @@
 
         [idle-control-pane
          #(re-frame/dispatch [::events/start-timer])])
-      [:p {:class (styles/level2)} step-type]
-
-      [:button {:on-click (if notifications
-                            #(re-frame/dispatch [::events/deactivate-notifications])
-                            #(re-frame/dispatch [::events/activate-notifications]))}
-       (if notifications
-         "Deactivate notifications"
-         "Activate notifications")]]]))
+      [:p {:class (styles/level2)} step-type]]]))
 

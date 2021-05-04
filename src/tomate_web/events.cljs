@@ -20,8 +20,9 @@
 (lib/reg-event-db
  ::notification-permission-response
  (fn-traced [db [_ notification-permission]]
-            (assoc db :notification-permission notification-permission 
-                      :notifications (= "granted" notification-permission))))
+            (assoc db
+                   :notification-permission notification-permission
+                   :notifications (= "granted" notification-permission))))
 
 (lib/reg-event-fx
  ::next-step
@@ -126,6 +127,7 @@
                           :notified true)
                :fx [[::fx/activate-notifications]]}
 
+              ;; FIXME We were there to activate in the first place
               {:fx [[::fx/request-notification-permission
                      {:on-permission-change ::notification-permission-response}]]})))
 

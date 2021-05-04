@@ -4,15 +4,16 @@
 
 (defglobal vars
   [":root"
-   {:theme/*color-base* :#999
-    :theme/*color-light* :#ddd
-    :theme/*color-dark* :#444}])
+   {:theme/*color-base* :#215876
+    :theme/*color-light* :#aecbce
+    :theme/*color-dark* :#224866
+    :theme/*color-alternate* :#eae37e}])
 
 (defglobal body
   [:body
-   {:font-family "sans-serif"
-    :background-color :theme/*color-light*
-    :color :theme/*color-dark*
+   {:font-family "'Inter', sans-serif"
+    :background-color :theme/*color-dark*
+    :color :theme/*color-light*
     :min-height :100vh
     :margin 0}])
 
@@ -20,28 +21,30 @@
   [:header
    {:font-size :1.5em
     :padding  "0.5em 1em"
-    :background-color :theme/*color-dark*
-    :color :theme/*color-light*
     :border-bottom-width :1px
-    :border-bottom-color :theme/*color-base*
+    :border-bottom-color :theme/*light*
     :border-bottom-style :solid}])
 
 (defclass container
   []
   {:background-color :theme/*color-base*
-   :color :theme/*color-dark*
+   :color :theme/*color-light*
+
    :display :flex
    :flex-direction :column
    :align-items :center
    :text-align :center
-   :max-width "80ch"
+
+   :border-radius "0.5em"
+  ;;  FIXME régler la taille de la police sur la taille du container
+   :max-width "clamp(60vw, 65%, 60ch)"
    :margin "2em auto"})
 
 
 (defclass timer
   []
-  {:font-family "'DM Mono', monospace"
-   :font-size :4.5em
+  {:font-family "'Courier Prime', monospace"
+   :font-size "clamp(3.5em, 8vw, 6.5em)"
    :margin "3rem 0"})
 
 (defclass level2
