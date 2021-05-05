@@ -34,7 +34,7 @@
               {:db (assoc db
                           :session (conj session step)
                           :start-time now
-                          :now now
+                          :elapsed-time 0
                           :notified false)
                ::fx/clear-interval {:id ::update-timer-interval}
                ::fx/dispatch-interval {:dispatch [::update-timer]
@@ -48,12 +48,12 @@
   (re-frame/->interceptor :id ::check-overflow
                           :after (fn [{:keys [effects] :as context}]
                                    (let [{:keys [db fx] :or {fx []}}  effects
-                                         {:keys [plan notified notifications now start-time session]} db]
+                                         {:keys [plan notified notifications elapsed-time session]} db]
                                      (if (and notifications (not notified))
                                        (let [{:keys [durations rounds]} plan
                                              step-type (db/step-type session rounds)
                                              step-duration (step-type durations)
-                                             overflow? (> (/ (- now start-time) 1000) step-duration)
+                                             overflow? (> elapsed-time step-duration)
 
                                              notify [::fx/notify {:text "Test"
                                                                   :on-notification ::notified}]]
@@ -63,8 +63,9 @@
                                            context))
                                        context))))]
 
- (fn-traced [{:keys [now db]} _]
-            {:db (assoc db :now now)}))
+ (fn [{:keys [now db]} _]
+   (let [elapsed-time (int (/ (- now (:start-time db)) 1000))]
+     {:db (assoc db :elapsed-time elapsed-time)})))
 
 
 (lib/reg-event-db
@@ -80,7 +81,6 @@
             (let [current-time (:now cofx)]
               {:db (assoc (:db cofx)
                           :start-time current-time
-                          :now current-time
                           :notified false
                           :running true)
                ::fx/dispatch-interval {:dispatch [::update-timer]
@@ -108,7 +108,7 @@
                                       {:start-time start-time :end-time now})]
               {:db (assoc (:db cofx)
                           :start-time now
-                          :now now
+                          :elapsed-time 0
                           :running false
                           :notified false
                           :session [])

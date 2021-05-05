@@ -2,6 +2,9 @@
   (:require
    [cljs.spec.alpha :as s]))
 
+(s/def ::start-time inst?)
+(s/def ::end-time inst?)
+(s/def ::elapsed-time int?)
 (s/def ::focus int?)
 (s/def ::short-break int?)
 (s/def ::long-break int?)
@@ -17,7 +20,7 @@
 (s/def ::durations (s/keys :req [::focus ::long-break ::short-break]))
 (s/def ::plan (s/keys :req-un [::durations
                                ::rounds]))
-(s/def ::schema (s/keys :req-un [::plan ::session ::history ::running ::notified ::notifications ::notification-permission]))
+(s/def ::schema (s/keys :req-un [::plan ::session ::history ::running ::notified ::notifications ::notification-permission ::start-time ::elapsed-time]))
 
 
 (def default-db

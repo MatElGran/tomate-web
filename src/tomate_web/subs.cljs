@@ -23,9 +23,9 @@
    (:start-time db)))
 
 (re-frame/reg-sub
- ::now
+ ::elapsed-time
  (fn [db]
-   (:now db)))
+   (:elapsed-time db)))
 
 (re-frame/reg-sub
  ::running
@@ -79,14 +79,6 @@
  :<- [::rounds-count]
  (fn [[session rounds-count] _]
    (db/step-type session rounds-count)))
-
-(re-frame/reg-sub
- ::elapsed-time
- :<- [::start-time]
- :<- [::now]
- (fn [[start-time now] _]
-   (int (/ (- now start-time) 1000))))
-
 
 (re-frame/reg-sub
  ::formatted-time
