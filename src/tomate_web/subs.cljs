@@ -87,8 +87,8 @@
  :<- [::step-type]
  :<- [::focus-duration]
 
- (fn [[elapsed-time step-type, focus-session-duration] _]
+ (fn [[elapsed-time step-type, focus-duration] _]
    (format-time
     (if (= step-type ::db/focus)
-      (- focus-session-duration elapsed-time)
+      (- focus-duration elapsed-time)
       elapsed-time))))

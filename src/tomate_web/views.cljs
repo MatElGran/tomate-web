@@ -3,8 +3,13 @@
    [re-frame.core :as re-frame]
    [tomate-web.styles :as styles]
    [tomate-web.subs :as subs]
-   [tomate-web.events :as events]))
+   [tomate-web.events :as events]
+   [tomate-web.db :as db]))
 
+(defn step-type-label [step-type]
+  (cond  (= ::db/focus step-type) "Focus"
+         (= ::db/short-break step-type) "Short break"
+         :else "Long break"))
 
 (defn idle-control-pane [command]
   [:div
@@ -22,9 +27,12 @@
      :on-click  stop-command}
     "Stop"]
    [:button
-    {:class (styles/button)
+    {:class (styles/secondary-button)
      :on-click next-command}
-    "Next"]])
+    [:svg
+     {:viewBox "0 0 24 24"}
+     [:path
+      {:d "M7.58 16.89l5.77-4.07c.56-.4.56-1.24 0-1.63L7.58 7.11C6.91 6.65 6 7.12 6 7.93v8.14c0 .81.91 1.28 1.58.82zM16 7v10c0 .55.45 1 1 1s1-.45 1-1V7c0-.55-.45-1-1-1s-1 .45-1 1z"}]]]])
 
 (defn timer
   [time]
@@ -50,8 +58,11 @@
       ;;  (if notifications
       ;;    "Deactivate notifications"
       ;;    "Activate notifications")]
-      [:p {:class (styles/level2)} step-type]
+      [:p {:class (styles/step-type)} (step-type-label step-type)]
+
       [timer time]
+
+
       (if running
 
         [running-control-pane
@@ -59,5 +70,21 @@
          #(re-frame/dispatch [::events/next-step])]
 
         [idle-control-pane
-         #(re-frame/dispatch [::events/start-timer])])]]))
+         #(re-frame/dispatch [::events/start-timer])])
+      [:p
+       {:class (styles/settings)}
+       "notifications: "
+       [:span {:class (if notifications
+                        (styles/active-status)
+                        (styles/inactive-status))
+               :on-click  (when (not notifications)
+                            #(re-frame/dispatch [::events/activate-notifications]))}
+        "on"]
+       " / "
+       [:span {:class (if notifications
+                        (styles/inactive-status)
+                        (styles/active-status))
+               :on-click  (when notifications
+                            #(re-frame/dispatch [::events/deactivate-notifications]))}
+        "off"]]]]))
 

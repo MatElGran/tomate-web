@@ -5,17 +5,18 @@
    [tomate-web.fx :as fx]
    [tomate-web.coeffects :as cofx]
    [tomate-web.lib :as lib]
+   [tomate-web.notifications :as notifications]
    [day8.re-frame.tracing :refer-macros [fn-traced]]))
 
 (lib/reg-event-fx
  ::initialize-db
- [(re-frame/inject-cofx ::cofx/notification-permission)
-  (re-frame/inject-cofx ::cofx/active-notifications)]
+ [(re-frame/inject-cofx ::notifications/notification-permission)
+  (re-frame/inject-cofx ::notifications/active-notifications)]
  (fn-traced [{:keys [notification-permission active-notifications] :as cofx} _]
             (println cofx)
             {:db (assoc db/default-db
                         :notification-permission notification-permission
-                        :notifications active-notifications)}))
+                        :notifications (and (= "granted" notification-permission) active-notifications))}))
 
 (lib/reg-event-db
  ::notification-permission-response
@@ -54,10 +55,11 @@
                                              step-type (db/step-type session rounds)
                                              step-duration (step-type durations)
                                              overflow? (> elapsed-time step-duration)
+                                             notification-text (cond (= ::db/focus step-type) "Time for a break"
+                                                                     :else "Time to focus")
 
-                                             notify [::fx/notify {:text "Test"
-                                                                  :on-notification ::notified}]]
-
+                                             notify [::notifications/notify {:text notification-text
+                                                                             :on-notification ::notified}]]
                                          (if overflow?
                                            (re-frame/assoc-effect context :fx (conj fx notify))
                                            context))
@@ -119,23 +121,23 @@
 
 (lib/reg-event-fx
  ::activate-notifications
- [(re-frame/inject-cofx ::cofx/notification-permission)]
+ [(re-frame/inject-cofx ::notifications/notification-permission)]
  (fn-traced [cofx _]
             (if (= "granted" (:notification-permission cofx))
               {:db (assoc (:db cofx)
                           :notifications true
                           :notified true)
-               :fx [[::fx/activate-notifications]]}
+               :fx [[::notifications/activate-notifications]]}
 
               ;; FIXME We were there to activate in the first place
-              {:fx [[::fx/request-notification-permission
+              {:fx [[::notifications/request-notification-permission
                      {:on-permission-change ::notification-permission-response}]]})))
 
 
 (lib/reg-event-fx
  ::deactivate-notifications
- [(re-frame/inject-cofx ::cofx/notification-permission)]
+ [(re-frame/inject-cofx ::notifications/notification-permission)]
  (fn-traced [cofx _]
             {:db (assoc (:db cofx) :notifications false)
-             :fx [[::fx/deactivate-notifications]]}))
+             :fx [[::notifications/deactivate-notifications]]}))
 
