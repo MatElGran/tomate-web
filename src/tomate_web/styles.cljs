@@ -14,7 +14,8 @@
 
 (defglobal body
   [:body
-   {:font-family "'Inter', sans-serif"
+   {:box-sizing :border-box
+    :font-family "'Inter', sans-serif"
     :font-size :theme/*font-size-base*
     :background-color :theme/*color-dark*
     :color :theme/*color-alternate*
@@ -38,7 +39,7 @@
    :text-align :center
    :padding "2em 0"
    :border-radius "0.5em"
-   :max-width "clamp(30ch, 65%, 60ch)"
+   :max-width "clamp(25ch, 70%, 60ch)"
    :margin "2em auto"}
 
   [:>*+* {:margin-top :2rem}])
@@ -73,7 +74,7 @@
    :color :theme/*color-dark*
    :font-size :theme/*font-size-base*
    :font-weight 700
-   :min-width :10ch
+   :width :10ch
    :min-height :4ex
    :border-radius "0.5rem"
    :box-shadow "0.2rem 0.2rem 0.8rem var(--theme--color-dark)"})
@@ -82,7 +83,8 @@
   []
   {:display :flex
    :align-items :center
-   :justify-content :center
+   :justify-content :flex-start
+   :width "calc((100% - 10ch)/2 - 1ch)"
    :position :absolute
    :right 0
    :border-width 0
@@ -91,8 +93,7 @@
    :box-shadow :initial}
 
   [:svg
-   {:fill :theme/*color-alternate*
-    :min-width :4ch}])
+   {:fill :theme/*color-alternate*}])
 
 
 (defclass settings

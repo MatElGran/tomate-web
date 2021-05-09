@@ -30,7 +30,7 @@
     {:class (styles/secondary-button)
      :on-click next-command}
     [:svg
-     {:viewBox "0 0 24 24"}
+     {:viewBox "0 0 24 24" :height :4ch :width :4ch}
      [:path
       {:d "M7.58 16.89l5.77-4.07c.56-.4.56-1.24 0-1.63L7.58 7.11C6.91 6.65 6 7.12 6 7.93v8.14c0 .81.91 1.28 1.58.82zM16 7v10c0 .55.45 1 1 1s1-.45 1-1V7c0-.55-.45-1-1-1s-1 .45-1 1z"}]]]])
 
@@ -51,13 +51,6 @@
 
      [:div
       {:class (styles/container)}
-      ;; [:button {:class (styles/button)
-      ;;           :on-click (if notifications
-      ;;                       #(re-frame/dispatch [::events/deactivate-notifications])
-      ;;                       #(re-frame/dispatch [::events/activate-notifications]))}
-      ;;  (if notifications
-      ;;    "Deactivate notifications"
-      ;;    "Activate notifications")]
       [:p {:class (styles/step-type)} (step-type-label step-type)]
 
       [timer time]
@@ -71,9 +64,11 @@
 
         [idle-control-pane
          #(re-frame/dispatch [::events/start-timer])])
+
       [:p
        {:class (styles/settings)}
        "notifications: "
+
        [:span {:class (if notifications
                         (styles/active-status)
                         (styles/inactive-status))
