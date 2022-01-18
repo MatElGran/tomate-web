@@ -19,4 +19,8 @@
                                                       find-doc
                                                       print-doc
                                                       pst
-                                                      source]}}}}
+                                                      source]}}
+           :clojure-lsp/unused-public-var  {:exclude #{tomate-web.core [init]
+                                                       tomate-web.styles/vars
+                                                       tomate-web.styles/body
+                                                       tomate-web.styles/header}}}}
