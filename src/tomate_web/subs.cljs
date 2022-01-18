@@ -57,19 +57,17 @@
 
     (str (when (> 0 duration) "-") (left-pad minutes) ":" (left-pad seconds))))
 
+
 (comment
   (let [duration (* 60 25)]
-    (format-time duration)))
+    (format-time duration))
 
-(comment
   (let [duration (- (* 60 25))]
-    (format-time duration)))
+    (format-time duration))
 
-(comment
   (let [duration (- (* 60 8))]
-    (format-time duration)))
+    (format-time duration))
 
-(comment
   (let [duration (- 8)]
     (format-time duration)))
 
@@ -87,7 +85,7 @@
  :<- [::step-type]
  :<- [::focus-duration]
 
- (fn [[elapsed-time step-type, focus-duration] _]
+ (fn [[elapsed-time step-type focus-duration] _]
    (format-time
     (if (= step-type ::db/focus)
       (- focus-duration elapsed-time)

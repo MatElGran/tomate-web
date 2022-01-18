@@ -4,46 +4,51 @@
    [tomate-web.styles :as styles]
    [tomate-web.subs :as subs]
    [tomate-web.events :as events]
-   [tomate-web.db :as db]))
+   [tomate-web.notifications :as notifications]
+   [tomate-web.db :as db]
+   [tomate-web.views.components.icons :as icons]))
 
 (defn step-type-label [step-type]
   (cond  (= ::db/focus step-type) "Focus"
          (= ::db/short-break step-type) "Short break"
          :else "Long break"))
 
-(defn idle-control-pane [command]
+(defn idle-control-panel
+  []
   [:div
    {:class (styles/commands)}
    [:button
     {:class (styles/button)
-     :on-click  command}
+     :on-click  #(re-frame/dispatch [::events/start-timer])}
     "Start"]])
 
-(defn running-control-pane [stop-command next-command]
+(defn running-control-panel
+  []
   [:div
    {:class (styles/commands)}
    [:button
     {:class (styles/button)
-     :on-click  stop-command}
+     :on-click  #(re-frame/dispatch [::events/stop-timer])}
     "Stop"]
    [:button
     {:class (styles/secondary-button)
-     :on-click next-command}
-    [:svg
-     {:viewBox "0 0 24 24" :height :4ch :width :4ch}
-     [:path
-      {:d "M7.58 16.89l5.77-4.07c.56-.4.56-1.24 0-1.63L7.58 7.11C6.91 6.65 6 7.12 6 7.93v8.14c0 .81.91 1.28 1.58.82zM16 7v10c0 .55.45 1 1 1s1-.45 1-1V7c0-.55-.45-1-1-1s-1 .45-1 1z"}]]]])
+     :aria-label "Next"
+     :on-click #(re-frame/dispatch [::events/next-step])}
+    icons/forward]])
 
-(defn timer
-  [time]
-  [:p {:class (styles/timer)} @time])
+(defn time-display []
+  (let [time (re-frame/subscribe [::subs/formatted-time])]
+    [:p {:class (styles/timer)} @time]))
+
+(defn control-panel []
+  (let [running @(re-frame/subscribe [::subs/running])]
+    (if running
+      [running-control-panel]
+      [idle-control-panel])))
 
 (defn main-panel []
   (let [step-type @(re-frame/subscribe [::subs/step-type])
-        time (re-frame/subscribe [::subs/formatted-time])
-        running @(re-frame/subscribe [::subs/running])
-        notifications @(re-frame/subscribe [::subs/notifications])]
-
+        notifications-activated? @(re-frame/subscribe [::subs/notifications])]
     [:<>
      [:header
       "Tomate"]
@@ -53,33 +58,20 @@
       {:class (styles/container)}
       [:p {:class (styles/step-type)} (step-type-label step-type)]
 
-      [timer time]
+      [time-display]
+      [control-panel]
 
-
-      (if running
-
-        [running-control-pane
-         #(re-frame/dispatch [::events/stop-timer])
-         #(re-frame/dispatch [::events/next-step])]
-
-        [idle-control-pane
-         #(re-frame/dispatch [::events/start-timer])])
-
-      [:p
+      [:div
        {:class (styles/settings)}
-       "notifications: "
 
-       [:span {:class (if notifications
-                        (styles/active-status)
-                        (styles/inactive-status))
-               :on-click  (when (not notifications)
-                            #(re-frame/dispatch [::events/activate-notifications]))}
-        "on"]
-       " / "
-       [:span {:class (if notifications
-                        (styles/inactive-status)
-                        (styles/active-status))
-               :on-click  (when notifications
-                            #(re-frame/dispatch [::events/deactivate-notifications]))}
-        "off"]]]]))
+       [:label
+        {:for "notifications-activated" :style {:position "relative"}}
+        [:input
+         {:id "notifications-activated" :name "notifications-activated" :type "checkbox" :checked notifications-activated?
+          :style {:position "absolute" :opacity 0 :width "1em" :height "1em"}
+          :on-change #(re-frame/dispatch [::notifications/toggle-notifications (not notifications-activated?)])}]
+        (if notifications-activated?
+          icons/active-notifications
+          icons/inactive-notifications)]]]]))
+
 

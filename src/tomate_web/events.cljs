@@ -10,25 +10,18 @@
 
 (lib/reg-event-fx
  ::initialize-db
- [(re-frame/inject-cofx ::notifications/notification-permission)
-  (re-frame/inject-cofx ::notifications/active-notifications)]
- (fn-traced [{:keys [notification-permission active-notifications] :as cofx} _]
-            (println cofx)
+ [(re-frame/inject-cofx ::notifications/notification-allowed?)
+  (re-frame/inject-cofx ::notifications/notifications-active?)]
+ (fn-traced
+  [{:keys [notification-allowed? notifications-active?]} _]
             {:db (assoc db/default-db
-                        :notification-permission notification-permission
-                        :notifications (and (= "granted" notification-permission) active-notifications))}))
-
-(lib/reg-event-db
- ::notification-permission-response
- (fn-traced [db [_ notification-permission]]
-            (assoc db
-                   :notification-permission notification-permission
-                   :notifications (= "granted" notification-permission))))
+              :notifications (and notification-allowed? notifications-active?))}))
 
 (lib/reg-event-fx
  ::next-step
  [(re-frame/inject-cofx ::cofx/now)]
- (fn-traced [{:keys [db now]} _]
+ (fn-traced
+  [{:keys [db now]} _]
             (let [{:keys [session start-time]} db
                   step {:start-time start-time
                         :end-time now}]
@@ -42,44 +35,54 @@
                                        :ms 1000
                                        :id ::update-timer-interval}})))
 
+(defn overflow?
+  [plan step-type elapsed-time]
+  (let [step-duration (step-type (:durations plan))]
+    (> elapsed-time step-duration)))
+
+(defn notification-text
+  [step-type]
+  (if (= ::db/focus step-type)
+    "Time for a break"
+    "Time to focus"))
 
 (lib/reg-event-fx
  ::update-timer
  [(re-frame/inject-cofx ::cofx/now)
   (re-frame/->interceptor :id ::check-overflow
-                          :after (fn [{:keys [effects] :as context}]
-                                   (let [{:keys [db fx] :or {fx []}}  effects
-                                         {:keys [plan notified notifications elapsed-time session]} db]
-                                     (if (and notifications (not notified))
-                                       (let [{:keys [durations rounds]} plan
-                                             step-type (db/step-type session rounds)
-                                             step-duration (step-type durations)
-                                             overflow? (> elapsed-time step-duration)
-                                             notification-text (cond (= ::db/focus step-type) "Time for a break"
-                                                                     :else "Time to focus")
-
-                                             notify [::notifications/notify {:text notification-text
-                                                                             :on-notification ::notified}]]
-                                         (if overflow?
-                                           (re-frame/assoc-effect context :fx (conj fx notify))
-                                           context))
+                          :after (fn
+                                   [{:keys [effects] :as context}]
+                                   (let [{:keys [db fx] :or {fx []}} effects
+                                         {:keys [plan notified notifications sound elapsed-time session]} db
+                                         step-type (db/step-type session (:rounds plan))
+                                         notify-fx [::notifications/notify {:text (notification-text step-type)
+                                                                            :on-notification ::notified}]
+                                         sound-fx [::notifications/play-sound {:on-notification ::notified}]]
+                                     (if (and
+                                          (not notified)
+                                          (overflow? plan step-type elapsed-time))
+                                       (re-frame/assoc-effect context
+                                                              :fx (conj fx (when notifications notify-fx) (when sound sound-fx)))
                                        context))))]
 
- (fn [{:keys [now db]} _]
+ (fn
+   [{:keys [now db]} _]
    (let [elapsed-time (int (/ (- now (:start-time db)) 1000))]
      {:db (assoc db :elapsed-time elapsed-time)})))
 
 
 (lib/reg-event-db
  ::notified
- (fn-traced [db _]
+ (fn-traced
+  [db _]
             (assoc db
                    :notified true)))
 
 (lib/reg-event-fx
  ::start-timer
  [(re-frame/inject-cofx ::cofx/now)]
- (fn-traced [cofx _]
+ (fn-traced
+  [cofx _]
             (let [current-time (:now cofx)]
               {:db (assoc (:db cofx)
                           :start-time current-time
@@ -92,23 +95,22 @@
 
 (lib/reg-event-db
  ::archive_session
- (fn-traced [db [_ session]]
-            (let [history (:history  db)
-                  updated-history (conj history session)]
+ (fn-traced
+  [{:keys [history] :as db} [_ session]]
+  (let [updated-history (conj history session)]
               (assoc db :history updated-history))))
 
 
 (lib/reg-event-fx
  ::stop-timer
  [(re-frame/inject-cofx ::cofx/now)]
- (fn-traced [cofx _]
-            (let [{:keys [now db]} cofx
-                  start-time (:start-time  db)
-                  session (:session  db)
+ (fn-traced
+  [{:keys [now db]} _]
+  (let [{:keys [start-time session]} db
                   session-to-archive (conj
                                       session
                                       {:start-time start-time :end-time now})]
-              {:db (assoc (:db cofx)
+    {:db (assoc db
                           :start-time now
                           :elapsed-time 0
                           :running false
@@ -116,28 +118,3 @@
                           :session [])
                :dispatch [::archive_session session-to-archive]
                ::fx/clear-interval {:id ::update-timer-interval}})))
-
-
-
-(lib/reg-event-fx
- ::activate-notifications
- [(re-frame/inject-cofx ::notifications/notification-permission)]
- (fn-traced [cofx _]
-            (if (= "granted" (:notification-permission cofx))
-              {:db (assoc (:db cofx)
-                          :notifications true
-                          :notified true)
-               :fx [[::notifications/activate-notifications]]}
-
-              ;; FIXME We were there to activate in the first place
-              {:fx [[::notifications/request-notification-permission
-                     {:on-permission-change ::notification-permission-response}]]})))
-
-
-(lib/reg-event-fx
- ::deactivate-notifications
- [(re-frame/inject-cofx ::notifications/notification-permission)]
- (fn-traced [cofx _]
-            {:db (assoc (:db cofx) :notifications false)
-             :fx [[::notifications/deactivate-notifications]]}))
-

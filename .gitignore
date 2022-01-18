@@ -4,6 +4,9 @@
 /*-init.clj
 /*.log
 
+# MacOs
+.DS_Store
+
 # Leiningen
 /.lein-*
 /.nrepl-port
@@ -20,5 +23,3 @@
 
 # clj-kondo cache
 /.clj-kondo/.cache
-.DS_Store
-

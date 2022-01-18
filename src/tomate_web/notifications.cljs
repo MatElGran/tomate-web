@@ -4,57 +4,58 @@
             [day8.re-frame.tracing :refer-macros [fn-traced]]))
 
 (re-frame/reg-cofx
- ::notification-permission
- (fn [coeffects _]
+ ::notification-allowed?
+ (fn
+   [cofx _]
    (let [value (try
                  (.-permission js/Notification)
                  (catch js/Error e
+                   ; FIXME
                    (println e)
                    "denied"))]
-     (assoc coeffects :notification-permission value))))
+     (assoc cofx :notification-allowed? (= "granted" value)))))
 
 (re-frame/reg-cofx
- ::active-notifications
- (fn [coeffects _]
+ ::notifications-active?
+ (fn
+   [cofx _]
    (let [value (try
                  (.getItem (.-localStorage js/window) "active-notifications")
                  (catch js/Errror e
+                   ; FIXME
                    (println e)
                    false))]
-     (assoc coeffects :active-notifications (= "true" value)))))
+     (assoc cofx :notifications-active? (= "true" value)))))
 
 (lib/reg-event-db
+ ; FIXME rename
  ::notification-permission-response
- (fn-traced [db [_ notification-permission]]
+ (fn-traced
+  [db [_ notification-allowed?]]
+  (let [notifications-active? (= "granted" notification-allowed?)]
             (assoc db
-                   :notification-permission notification-permission
-                   :notifications (= "granted" notification-permission))))
+           :notifications notifications-active?))))
 
 (lib/reg-event-fx
- ::activate-notifications
- [(re-frame/inject-cofx ::notification-permission)]
- (fn-traced [cofx _]
-            (if (= "granted" (:notification-permission cofx))
-              {:db (assoc (:db cofx)
-                          :notifications true
+ ::toggle-notifications
+ [(re-frame/inject-cofx ::notification-allowed?)]
+ (fn-traced
+  [{:keys [db notification-allowed?]} [_ active?]]
+
+  (if (and (not notification-allowed?) active?)
+    ; FIXME We were there to activate in the first place
+    {:fx [[::request-notification-allowed?
+           {:on-permission-change ::notification-permission-response}]]}
+
+    {:db (assoc db
+                :notifications active?
                           :notified true)
-               :fx [[::activate-notifications]]}
-
-              ;; FIXME We were there to activate in the first place
-              {:fx [[::request-notification-permission
-                     {:on-permission-change ::notification-permission-response}]]})))
-
-
-(lib/reg-event-fx
- ::deactivate-notifications
- [(re-frame/inject-cofx ::notification-permission)]
- (fn-traced [cofx _]
-            {:db (assoc (:db cofx) :notifications false)
-             :fx [[::deactivate-notifications]]}))
+     :fx [[::persist-to-local-storage {:key "active-notifications" :value active?}]]})))
 
 (re-frame/reg-fx
- ::request-notification-permission
- (fn [{:keys [:on-permission-change]}]
+ ::request-notification-allowed?
+ (fn
+   [{:keys [:on-permission-change]}]
    (if js/Notification
      (if (.then (.requestPermission js/Notification))
        (-> js/Notification
@@ -64,27 +65,23 @@
 
        (-> js/Notification
            (.requestPermission #(re-frame/dispatch [on-permission-change %]))))
-
+     ; FIXME
      (println "No notification support"))))
 
 (re-frame/reg-fx
  ::notify
- (fn [{:keys [:text :on-notification]}]
+ (fn
+   [{:keys [:text :on-notification]}]
+   ; FIXME test when permission has been denied since activation
    (js/Notification. text)
    (re-frame/dispatch [on-notification])))
 
 (re-frame/reg-fx
- ::activate-notifications
- (fn []
+ ::persist-to-local-storage
+ (fn
+   [{:keys [key value]}]
    (try
-     (.setItem (.-localStorage js/window) "active-notifications" true)
+     (.setItem (.-localStorage js/window) key value)
      (catch js/Error e
-       (println e)))))
-
-(re-frame/reg-fx
- ::deactivate-notifications
- (fn []
-   (try
-     (.setItem (.-localStorage js/window) "active-notifications" false)
-     (catch js/Error e
+       ; FIXME remonter l'erreur?
        (println e)))))

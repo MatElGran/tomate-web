@@ -99,9 +99,3 @@
 (defclass settings
   []
   {:font-size :theme/*font-size-small*})
-
-(defclass active-status
-  []  {:font-weight 700})
-
-(defclass inactive-status
-  [] {:cursor :pointer})
