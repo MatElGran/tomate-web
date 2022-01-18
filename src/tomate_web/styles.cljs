@@ -37,12 +37,13 @@
    :flex-direction :column
    :align-items :center
    :text-align :center
-   :padding "2em 0"
+   :padding "2em 0 0 0"
    :border-radius "0.5em"
    :max-width "clamp(25ch, 70%, 60ch)"
    :margin "2em auto"}
 
-  [:>*+* {:margin-top :2rem}])
+  [:>*+*
+   {:margin-top :2rem}])
 
 (defclass timer
   []
@@ -53,11 +54,6 @@
 (defclass step-type
   []
   {:margin 0})
-
-(defclass tools
-  []
-  {:display :flex
-   :width :100%})
 
 (defclass commands
   []
@@ -98,4 +94,11 @@
 
 (defclass settings
   []
-  {:font-size :theme/*font-size-small*})
+  {:font-size :theme/*font-size-small*
+   :min-width :100%
+   :display :flex
+   :justify-content :flex-end}
+
+  [:>*
+   {:margin-right :1em
+    :margin-bottom :0.5em}])
